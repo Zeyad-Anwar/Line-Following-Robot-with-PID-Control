@@ -1,0 +1,40 @@
+add component -type Python -name Simulator
+add component -type Python -name Controller
+add component -type Python -name Visualizer
+
+add port -componentName Simulator  -name eth_port -gateway python2DtEthernet
+add port -componentName Controller -name eth_port -gateway python2DtEthernet
+add port -componentName Visualizer -name eth_port -gateway python2DtEthernet
+
+add portSocket -componentName Simulator  -portName eth_port -ipPortNum 8001 -socketType server
+add portSocket -componentName Simulator  -portName eth_port -ipPortNum 8002 -socketType server
+add portSocket -componentName Simulator  -portName eth_port -ipPortNum 8005 -socketType client
+add portSocket -componentName Controller -portName eth_port -ipPortNum 8001 -socketType client
+add portSocket -componentName Controller -portName eth_port -ipPortNum 8005 -socketType server
+add portSocket -componentName Controller -portName eth_port -ipPortNum 8006 -socketType server
+add portSocket -componentName Visualizer -portName eth_port -ipPortNum 8002 -socketType client
+add portSocket -componentName Visualizer -portName eth_port -ipPortNum 8006 -socketType client
+
+config port -componentName Simulator  -portName eth_port -macAddress 00:00:00:01:00:01 -ipAddress 192.168.10.1 -networkMode simulated
+config port -componentName Controller -portName eth_port -macAddress 00:00:00:02:00:01 -ipAddress 192.168.10.2 -networkMode simulated
+config port -componentName Visualizer -portName eth_port -macAddress 00:00:00:03:00:01 -ipAddress 192.168.10.3 -networkMode simulated
+
+define componentSignals -componentName Simulator  -signals [x:double:output,y:double:output,theta:double:output,v:double:input,omega:double:input]
+define componentSignals -componentName Controller -signals [x:double:input,y:double:input,theta:double:input,v:double:output,omega:double:output,lat_err:double:output,head_err:double:output]
+define componentSignals -componentName Visualizer -signals [x:double:input,y:double:input,theta:double:input,v:double:input,omega:double:input,lat_err:double:input,head_err:double:input]
+
+connect signals -sourceSignal Simulator.x     -destSignal Controller.x     -sourcePortName eth_port -destPortName eth_port
+connect signals -sourceSignal Simulator.y     -destSignal Controller.y     -sourcePortName eth_port -destPortName eth_port
+connect signals -sourceSignal Simulator.theta -destSignal Controller.theta -sourcePortName eth_port -destPortName eth_port
+connect signals -sourceSignal Simulator.x     -destSignal Visualizer.x     -sourcePortName eth_port -destPortName eth_port
+connect signals -sourceSignal Simulator.y     -destSignal Visualizer.y     -sourcePortName eth_port -destPortName eth_port
+connect signals -sourceSignal Simulator.theta -destSignal Visualizer.theta -sourcePortName eth_port -destPortName eth_port
+connect signals -sourceSignal Controller.v        -destSignal Simulator.v        -sourcePortName eth_port -destPortName eth_port
+connect signals -sourceSignal Controller.omega    -destSignal Simulator.omega    -sourcePortName eth_port -destPortName eth_port
+connect signals -sourceSignal Controller.v        -destSignal Visualizer.v       -sourcePortName eth_port -destPortName eth_port
+connect signals -sourceSignal Controller.omega    -destSignal Visualizer.omega   -sourcePortName eth_port -destPortName eth_port
+connect signals -sourceSignal Controller.lat_err  -destSignal Visualizer.lat_err  -sourcePortName eth_port -destPortName eth_port
+connect signals -sourceSignal Controller.head_err -destSignal Visualizer.head_err -sourcePortName eth_port -destPortName eth_port
+
+generate
+quit
